@@ -1,1 +1,28 @@
+name: Deploy to GCP
 
+on:
+  push:
+    branches:
+      - feature-devops-pro1
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Google Cloud SDK
+      uses: google-github-actions/setup-gcloud@v2
+      with:
+        service_account_key: ${{ secrets.GCP_SA_KEY }}
+        project_id: ${{ secrets.GCP_PROJECT_ID }}
+
+    - name: Submit Cloud Build
+      run: |
+        gcloud builds submit --config DemoApi-dev/cloudbuild.yaml \
+          --substitutions _AR_HOSTNAME=gcr.io,_AR_REPO=my-repo,_SERVICE_NAME=demo-api,_DEPLOY_REGION=us-central1,_PLATFORM=managed \
+          DemoApi-dev/
+
+# Note: Update the substitutions with your actual values. Create secrets GCP_SA_KEY and GCP_PROJECT_ID in your GitHub repo settings.
